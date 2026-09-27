@@ -72,7 +72,7 @@ class GradientConjugadoQuadradoeSolver(IterativeSolver):
             Ad = np.dot(A, d)
             r_new = r - alpha * Ad
             
-            error = self.residual(system, x_new)
+            error = self.residual(x, x_new)
             error_history.append(error)
             # Critério de paragem: norma infinita da diferença entre iterações
             if np.max(np.abs(x_new - x)) < tol:
@@ -102,7 +102,6 @@ class GradientConjugadoQuadradoeSolver(IterativeSolver):
             method=self.name,
             solution=x,
             iterations=max_iteractions,
-            error=self.residual(system, x),
             converged=False,
             execution_time=time.process_time() - start,
             error_history=error_history

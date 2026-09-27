@@ -11,11 +11,6 @@ MAX_ITERATIONS ?= 100000
 INIT_GUESS ?= 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 .PHONY: setup install run test benchmark clean
 
-setup:
-	$(PYTHON) -m venv $(VENV)
-	$(VENV_PYTHON) -m pip install --upgrade pip
-	$(VENV_PYTHON) -m pip install -r requirements.txt
-
 install:
 	$(VENV_PYTHON) -m pip install -r requirements.txt
 
@@ -26,6 +21,3 @@ run:
 		--tolerance $(TOLERANCE) \
 		--max-iterations $(MAX_ITERATIONS) \
 		--init_guess "$(INIT_GUESS)"
-
-clean:
-	rmdir /S /Q $(VENV)

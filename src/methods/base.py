@@ -36,11 +36,15 @@ class IterativeSolver(ABC):
     def solve(self, system: Inputs, x0: np.ndarray | None = None):
         pass
 
-    def residual(self, system: Inputs, x: np.ndarray) -> float:
+    def residual(self, x_antigo: np.ndarray, x: np.ndarray) -> float:
+        erro_max = 0.0
+        n=36
+        for i in range(n):
+            dif = abs(x[i] - x_antigo[i])
 
-        r = system.b - system.A @ x
-        print("residuo", r)
-        return float(np.linalg.norm(r, ord=2))
+            if dif > erro_max:
+                erro_max = dif
+        return erro_max
 
     def initial_guess(self, system: Inputs, x0: np.ndarray | None) -> np.ndarray:
 

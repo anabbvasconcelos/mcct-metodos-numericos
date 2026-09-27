@@ -26,7 +26,7 @@ class JacobiSolver(IterativeSolver):
 
             x_new = (b - R @ x) / D
 
-            error = self.residual(system, x_new)
+            error = self.residual(x, x_new)
             error_history.append(error)
 
             if error < self.config.tolerance:
