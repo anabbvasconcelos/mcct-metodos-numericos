@@ -3,7 +3,8 @@ import argparse
 import numpy as np
 
 from analysis.convergence import save_error_history
-from src.methods.conditioning import calculate_conditioning, save_conditioning
+from src.methods.jacobi_n2 import JacobiN2Solver
+from src.methods.conditioning import calculate_conditioning, calculate_iteration_matrices_conditioning, save_conditioning
 from src.methods.base import SolverConfig
 from src.methods.jacobi import JacobiSolver
 from src.methods.metodo_gradiente import GradientConjugadoSolver
@@ -110,10 +111,18 @@ def main():
         f"Solução:\n"
         f"{gauss_result.solution}"
     )
+
     # CONDICIONAMENTO
 
     conditioning = calculate_conditioning(system.A)
     save_conditioning(conditioning)
+    resultados_iteracao = calculate_iteration_matrices_conditioning(system.A)
+    for metodo, metricas in resultados_iteracao.items():
+        print("=" * 60)
+        print(f"Método: {metodo}")
+        print("=" * 60)
+        save_conditioning(metricas,f"results/condicionamento_{metodo}.csv")
+        
 
     # for row in conditioning:
     #     print(
@@ -127,6 +136,7 @@ def main():
 
     solvers = [
         JacobiSolver(config),
+        JacobiN2Solver(config),
         GaussSeidelN2Solver(config),
         GaussSeidelSolver(config),
     ]
@@ -149,6 +159,7 @@ def main():
 
     result_files = [
         "results/jacobi_error.csv",
+        "results/jacobi_n2error.csv",
         "results/gauss_seidel_n2_error.csv",
         "results/gauss_seidel_error.csv",
         "results/mgc_error.csv",
@@ -185,7 +196,7 @@ def main():
 
         print(
             f"Tempo: "
-            f"{result.execution_time * 1000:.12f} ms"
+            f"{result.execution_time:.6f} s"
         )
 
         print(

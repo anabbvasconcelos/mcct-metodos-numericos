@@ -282,7 +282,58 @@ def calculate_conditioning(
 
     return results
 
+def calculate_iteration_matrices_conditioning(
+    A: np.ndarray,
+) -> dict[str, list[dict[str, float | str]]]:
+    """
+    Calcula as normas e normas ponderadas das matrizes de iteração
+    para M1 (Jacobi), M2 (Jacobi 2ª Ordem), M3 (Gauss-Seidel) e M4 (Gauss-Seidel 2ª Ordem).
+    """
+    A = np.asarray(A, dtype=float)
+    n = A.shape[0]
 
+    # Decomposição para matrizes de iteração
+    diag_A = np.diag(A)
+    D = np.diag(diag_A)
+    L = -np.tril(A, -1)
+    U = -np.triu(A, 1)
+
+    # Inversa de D para Jacobi
+    D_inv = np.zeros_like(A, dtype=float)
+    np.fill_diagonal(D_inv, 1.0 / diag_A)
+
+    # Matrizes de iteração T
+    T_m1 = np.eye(n) - D_inv @ A
+    T_m2 = T_m1 @ T_m1
+    
+    DL_inv = invert_matrix(D - L)
+    T_m3 = DL_inv @ U
+    T_m4 = T_m3 @ T_m3
+
+    iter_solvers = {
+        "M1 (Jacobi)": T_m1,
+        "M2 (Jacobi 2ª Ordem)": T_m2,
+        "M3 (Gauss-Seidel)": T_m3,
+        "M4 (Gauss-Seidel 2ª Ordem)": T_m4,
+    }
+
+    weights = calculate_weights(A)
+    results = {}
+
+    for solver_name, T in iter_solvers.items():
+        solver_results = []
+        for name, norm_func in NORMS:
+            norm_T = norm_func(T)
+            norm_T_weighted = weighted_norm(T, weights, norm_func)
+
+            solver_results.append({
+                "norm": name,
+                "norm_T": norm_T,
+                "norm_T_weighted": norm_T_weighted,
+            })
+        results[solver_name] = solver_results
+
+    return results
 
 def save_conditioning(
     results: list[dict],
@@ -291,26 +342,41 @@ def save_conditioning(
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Identifica se é o relatório da matriz A ou de uma matriz de iteração T
+    is_iteration = "norm_T" in results[0]
+
     with path.open("w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file, delimiter=";")
 
-        writer.writerow([
-            "Norma",
-            "||A||",
-            "||A^-1||",
-            "kappa(A)",
-            "||A||_W",
-            "||A^-1||_W",
-            "kappa_W(A)",
-        ])
-
-        for row in results:
+        if is_iteration:
             writer.writerow([
-                row["norm"],
-                f"{row['norm_A']:.6e}",
-                f"{row['norm_A_inv']:.6e}",
-                f"{row['kappa']:.6e}",
-                f"{row['norm_A_weighted']:.6e}",
-                f"{row['norm_A_inv_weighted']:.6e}",
-                f"{row['kappa_weighted']:.6e}",
+                "Norma",
+                "||T||",
+                "||T||_W",
             ])
+            for row in results:
+                writer.writerow([
+                    row["norm"],
+                    f"{row['norm_T']:.6e}",
+                    f"{row['norm_T_weighted']:.6e}",
+                ])
+        else:
+            writer.writerow([
+                "Norma",
+                "||A||",
+                "||A^-1||",
+                "kappa(A)",
+                "||A||_W",
+                "||A^-1||_W",
+                "kappa_W(A)",
+            ])
+            for row in results:
+                writer.writerow([
+                    row["norm"],
+                    f"{row['norm_A']:.6e}",
+                    f"{row['norm_A_inv']:.6e}",
+                    f"{row['kappa']:.6e}",
+                    f"{row['norm_A_weighted']:.6e}",
+                    f"{row['norm_A_inv_weighted']:.6e}",
+                    f"{row['kappa_weighted']:.6e}",
+                ])

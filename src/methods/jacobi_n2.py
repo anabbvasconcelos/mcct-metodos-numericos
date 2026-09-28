@@ -4,11 +4,11 @@ import time
 from src.methods.base import IterativeSolver, IterativeResult
 
 
-class JacobiSolver(IterativeSolver):
+class JacobiN2Solver(IterativeSolver):
 
     @property
     def name(self) -> str:
-        return "Jacobi (M1)"
+        return "Jacobi de 2ª Ordem (M2)"
 
     def solve(self, system, x0=None):
 
@@ -24,7 +24,11 @@ class JacobiSolver(IterativeSolver):
 
         for iteration in range(1, self.config.max_iterations + 1):
 
-            x_new = (b - R @ x) / D
+            # Primeiro sub-passo de Jacobi
+            x_mid = (b - R @ x) / D
+            
+            # Segundo sub-passo de Jacobi (compondo a 2ª ordem)
+            x_new = (b - R @ x_mid) / D
 
             error = self.residual(x, x_new)
             error_history.append(error)
@@ -46,8 +50,8 @@ class JacobiSolver(IterativeSolver):
             method=self.name,
             solution=x,
             iterations=self.config.max_iterations,
-            error=self.residual(system, x),
+            error=self.residual(x, x),  # ou o cálculo de resíduo adequado
             converged=False,
-            execution_time=time.process_time() - start,
+            execution_time=time.perf_counter() - start,
             error_history=error_history
         )
