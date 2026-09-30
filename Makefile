@@ -8,16 +8,25 @@ VECTOR_FILE ?= data/Vetor_b.txt
 
 TOLERANCE ?= 1e-4
 MAX_ITERATIONS ?= 100000
-INIT_GUESS ?= 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+INIT_GUESS_LIN ?= 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+INIT_GUESS_NLIN ?= 0.6 0.4 0.3
 .PHONY: setup install run test benchmark clean
 
 install:
 	$(VENV_PYTHON) -m pip install -r requirements.txt
 
-run:
+run_linear:
 	$(VENV_PYTHON) -m src.main \
 		--matrix $(MATRIX_FILE) \
 		--vector $(VECTOR_FILE) \
 		--tolerance $(TOLERANCE) \
+		--is_linear "1" \
 		--max-iterations $(MAX_ITERATIONS) \
-		--init_guess "$(INIT_GUESS)"
+		--init_guess "$(INIT_GUESS_LIN)" \
+
+run_nonlinear:
+	$(VENV_PYTHON) -m src.main \
+		--tolerance $(TOLERANCE) \
+		--max-iterations $(MAX_ITERATIONS) \
+		--is_linear "0" \
+		--init_guess "$(INIT_GUESS_NLIN)"

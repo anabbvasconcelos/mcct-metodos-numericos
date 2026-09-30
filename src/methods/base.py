@@ -8,8 +8,7 @@ from src.reader.txt_reader import Inputs
 class SolverConfig:
     tolerance: float = 1e-10
     max_iterations: int = 100_000
-    initial_guess: np.ndarray = field(
-        default_factory=lambda: np.zeros(36))
+    initial_guess: np.ndarray | None = None
 
 @dataclass
 class IterativeResult:
@@ -37,14 +36,8 @@ class IterativeSolver(ABC):
         pass
 
     def residual(self, x_antigo: np.ndarray, x: np.ndarray) -> float:
-        erro_max = 0.0
-        n=36
-        for i in range(n):
-            dif = abs(x[i] - x_antigo[i])
-
-            if dif > erro_max:
-                erro_max = dif
-        return erro_max
+        # difference between successive iterations:
+        return float(np.max(np.abs(x - x_antigo)))
 
     def initial_guess(self, system: Inputs, x0: np.ndarray | None) -> np.ndarray:
 

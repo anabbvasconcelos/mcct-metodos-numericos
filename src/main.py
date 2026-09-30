@@ -3,6 +3,8 @@ import argparse
 import numpy as np
 
 from analysis.convergence import save_error_history
+from src.methods.newton_modificado import NewtonModificadoSolver
+from src.reader.non_lin_inputs import SystemNonLinInputs
 from src.methods.jacobi_n2 import JacobiN2Solver
 from src.methods.conditioning import calculate_conditioning, calculate_iteration_matrices_conditioning, save_conditioning
 from src.methods.base import SolverConfig
@@ -22,12 +24,12 @@ def parse_args():
 
     parser.add_argument(
         "--matrix",
-        required=True
+        required=False
     )
 
     parser.add_argument(
         "--vector",
-        required=True
+        required=False
     )
 
     parser.add_argument(
@@ -49,17 +51,19 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--benchmark",
-        action="store_true"
+        "--is_linear",
+        type=str,
+        required=True
     )
-
     return parser.parse_args()
 
 
 def main():
 
     args = parse_args()
-
+    is_linear = args.is_linear.lower() in ("true", "1", "yes", "t")
+    print("is_linear",is_linear)
+    print("is_linear",args.is_linear.lower())
     init_guess = np.array(
         [
             float(x)
@@ -73,97 +77,144 @@ def main():
         max_iterations=args.max_iterations,
         initial_guess=init_guess
     )
+    if (is_linear):
 
-    reader = TXTReader()
+        reader = TXTReader()
 
-    system = reader.read(
-        args.matrix,
-        args.vector
-    )
-
-    # ==========================================================
-    # ELIMINAÇÃO DE GAUSS
-    # ==========================================================
-
-    gauss_solver = GaussianEliminationSolver()
-
-    gauss_result = gauss_solver.solve(system)
-
-    print("=" * 60)
-    print(gauss_solver.name)
-
-    print(
-        f"Tempo PASSO 1: "
-        f"{gauss_result.time_step1 * 1000:.12f} ms"
-    )
-
-    print(
-        f"Tempo PASSO 2: "
-        f"{gauss_result.time_step2 * 1000:.12f} ms"
-    )
-
-    print(
-        f"Tempo PASSO 3: "
-        f"{gauss_result.time_step3 * 1000:.12f} ms"
-    )
-
-    print(
-        f"Solução:\n"
-        f"{gauss_result.solution}"
-    )
-
-    # CONDICIONAMENTO
-
-    conditioning = calculate_conditioning(system.A)
-    save_conditioning(conditioning)
-    resultados_iteracao = calculate_iteration_matrices_conditioning(system.A)
-    for metodo, metricas in resultados_iteracao.items():
-        print("=" * 60)
-        print(f"Método: {metodo}")
-        print("=" * 60)
-        save_conditioning(metricas,f"results/condicionamento_{metodo}.csv")
-        
-
-    # for row in conditioning:
-    #     print(
-    #         f"{row['norm']:25} -> "
-    #         f"kappa(A) = {row['kappa']:.6e} | "
-    #         f"kappa_W(A) = {row['kappa_weighted']:.6e}"
-    #     )
-    # ==========================================================
-    # MÉTODOS ITERATIVOS
-    # ==========================================================
-
-    solvers = [
-        JacobiSolver(config),
-        JacobiN2Solver(config),
-        GaussSeidelN2Solver(config),
-        GaussSeidelSolver(config),
-    ]
-
-    # ==========================================================
-    # GRADIENTE CONJUGADO / CGS
-    # ==========================================================
-
-    if np.allclose(
-        system.A,
-        system.A.T
-    ):
-        solvers.append(
-            GradientConjugadoSolver(config)
+        system = reader.read(
+            args.matrix,
+            args.vector
         )
+        # ==========================================================
+        # ELIMINAÇÃO DE GAUSS
+        # ==========================================================
+
+        gauss_solver = GaussianEliminationSolver()
+
+        gauss_result = gauss_solver.solve(system)
+
+        print("=" * 60)
+        print(gauss_solver.name)
+
+        print(
+            f"Tempo PASSO 1: "
+            f"{gauss_result.time_step1 * 1000:.12f} ms"
+        )
+
+        print(
+            f"Tempo PASSO 2: "
+            f"{gauss_result.time_step2 * 1000:.12f} ms"
+        )
+
+        print(
+            f"Tempo PASSO 3: "
+            f"{gauss_result.time_step3 * 1000:.12f} ms"
+        )
+
+        print(
+            f"Solução:\n"
+            f"{gauss_result.solution}"
+        )
+
+        # CONDICIONAMENTO
+
+        conditioning = calculate_conditioning(system.A)
+        save_conditioning(conditioning)
+        resultados_iteracao = calculate_iteration_matrices_conditioning(system.A)
+        for metodo, metricas in resultados_iteracao.items():
+            print("=" * 60)
+            print(f"Método: {metodo}")
+            print("=" * 60)
+            save_conditioning(metricas,f"results/condicionamento_{metodo}.csv")
+            
+
+        # ==========================================================
+        # MÉTODOS ITERATIVOS
+        # ==========================================================
+
+        solvers = [
+            JacobiSolver(config),
+            JacobiN2Solver(config),
+            GaussSeidelN2Solver(config),
+            GaussSeidelSolver(config),
+        ]
+
+        # ==========================================================
+        # GRADIENTE CONJUGADO / CGS
+        # ==========================================================
+
+        if np.allclose(
+            system.A,
+            system.A.T
+        ):
+            solvers.append(
+                GradientConjugadoSolver(config)
+            )
+        else:
+            solvers.append(
+                GradientConjugadoQuadradoeSolver(config)
+            )
+
+        result_files = [
+            "results/jacobi_error.csv",
+            "results/jacobi_n2error.csv",
+            "results/gauss_seidel_n2_error.csv",
+            "results/gauss_seidel_error.csv",
+            "results/mgc_error.csv",
+        ]
+
+        # # ==========================================================
+        # # EXECUÇÃO
+        # # ==========================================================
+
+        # for solver, result_file in zip(
+        #     solvers,
+        #     result_files
+        # ):
+
+        #     result = solver.solve(system)
+
+        #     print("=" * 60)
+        #     print(result.method)
+
+        #     print(
+        #         f"Convergiu: "
+        #         f"{result.converged}"
+        #     )
+
+        #     print(
+        #         f"Iterações: "
+        #         f"{result.iterations}"
+        #     )
+
+        #     print(
+        #         f"Erro: "
+        #         f"{result.error:.6e}"
+        #     )
+
+        #     print(
+        #         f"Tempo: "
+        #         f"{result.execution_time:.6f} s"
+        #     )
+
+        #     print(
+        #         f"Solução:\n"
+        #         f"{result.solution}"
+        #     )
+
+        #     save_error_history(
+        #         result.error_history,
+        #         result_file
+        #     )
     else:
-        solvers.append(
-            GradientConjugadoQuadradoeSolver(config)
-        )
-
-    result_files = [
-        "results/jacobi_error.csv",
-        "results/jacobi_n2error.csv",
-        "results/gauss_seidel_n2_error.csv",
-        "results/gauss_seidel_error.csv",
-        "results/mgc_error.csv",
-    ]
+        print("=== Executando Modo Não Linear ===")
+        system = SystemNonLinInputs()
+        solvers = [NewtonModificadoSolver(config)]
+        result_files = [
+            "results/newtom_mod_error.csv"
+        ]
+        # result = solver.solve(system)
+        # print(f"Solução Não Linear: {result.solution}")
 
     # ==========================================================
     # EXECUÇÃO
@@ -208,7 +259,5 @@ def main():
             result.error_history,
             result_file
         )
-
-
 if __name__ == "__main__":
     main()
