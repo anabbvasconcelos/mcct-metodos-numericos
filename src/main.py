@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 
 from analysis.convergence import save_error_history
+from src.methods.gradiente import GradienteSolver
 from src.methods.newton import NewtonSolver
 from src.methods.newton_modificado import NewtonModificadoSolver
 from src.reader.non_lin_inputs import SystemNonLinInputs
@@ -210,10 +211,11 @@ def main():
     else:
         print("=== Executando Modo Não Linear ===")
         system = SystemNonLinInputs()
-        solvers = [NewtonSolver(config), NewtonModificadoSolver(config)]
+        solvers = [NewtonSolver(config), NewtonModificadoSolver(config), GradienteSolver(config)]
         result_files = [
             "results/newtom_error.csv",
-            "results/newtom_mod_error.csv"
+            "results/newtom_mod_error.csv",
+            "results/gradiente.csv"
         ]
         # result = solver.solve(system)
         # print(f"Solução Não Linear: {result.solution}")
