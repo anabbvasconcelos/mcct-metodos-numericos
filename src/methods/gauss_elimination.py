@@ -49,7 +49,7 @@ class GaussianEliminationSolver:
             # divisor_linha_elemento
             # --------------------------------------------------
 
-            start = time.perf_counter()
+            start = time.process_time()
 
             pivot = A[e, e]
 
@@ -57,14 +57,14 @@ class GaussianEliminationSolver:
             b[e] /= pivot
 
             tempo_passo1 += (
-                time.perf_counter() - start
+                time.process_time() - start
             )
 
             # --------------------------------------------------
             # PASSO 2
             # --------------------------------------------------
 
-            start = time.perf_counter()
+            start = time.process_time()
 
             for i in range(e + 1, n):
 
@@ -76,14 +76,14 @@ class GaussianEliminationSolver:
                 A[i, e] = 0.0
 
             tempo_passo2 += (
-                time.perf_counter() - start
+                time.process_time() - start
             )
 
         # ======================================================
         # PASSO 3 - RETROSUBSTITUIÇÃO
         # ======================================================
 
-        start = time.perf_counter()
+        start = time.process_time()
 
         x = np.zeros(n)
 
@@ -100,7 +100,7 @@ class GaussianEliminationSolver:
             ) / A[i, i]
 
         tempo_passo3 = (
-            time.perf_counter() - start
+            time.process_time() - start
         )
 
         return GaussianResult(

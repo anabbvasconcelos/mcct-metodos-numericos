@@ -19,7 +19,7 @@ class GradientConjugadoSolver(IterativeSolver):
         p = r.copy()
 
         error_history = []
-        start = time.perf_counter()
+        start = time.process_time()
         for iteration in range(1,max_iteractions + 1):
             Ap = np.dot(A, p)
             pAp = np.dot(p.T, Ap)
@@ -32,7 +32,7 @@ class GradientConjugadoSolver(IterativeSolver):
                     iterations=max_iteractions,
                     error=self.residual(system, x),
                     converged=False,
-                    execution_time=time.perf_counter() - start,
+                    execution_time=time.process_time() - start,
                     error_history=error_history
                 )
 
@@ -50,7 +50,7 @@ class GradientConjugadoSolver(IterativeSolver):
                         iterations=iteration,
                         error=error,
                         converged=True,
-                        execution_time=time.perf_counter() - start,
+                        execution_time=time.process_time() - start,
                         error_history=error_history
                     )
 
@@ -66,6 +66,6 @@ class GradientConjugadoSolver(IterativeSolver):
                 iterations=max_iteractions,
                 error=self.residual(system, x),
                 converged=False,
-                execution_time=time.perf_counter() - start,
+                execution_time=time.process_time() - start,
                 error_history=error_history
             )

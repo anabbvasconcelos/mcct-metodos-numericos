@@ -29,7 +29,7 @@ class GaussSeidelSolver(IterativeSolver):
 
         error_history = []
 
-        start = time.perf_counter()
+        start = time.process_time()
 
         for iteration in range(
             1,
@@ -63,7 +63,7 @@ class GaussSeidelSolver(IterativeSolver):
                     error=error,
                     converged=True,
                     execution_time=(
-                        time.perf_counter() - start
+                        time.process_time() - start
                     ),
                     error_history=error_history,
                 )
@@ -75,7 +75,7 @@ class GaussSeidelSolver(IterativeSolver):
             error=self.residual(system, x),
             converged=False,
             execution_time=(
-                time.perf_counter() - start
+                time.process_time() - start
             ),
             error_history=error_history,
         )
@@ -100,7 +100,7 @@ class GaussSeidelN2Solver(IterativeSolver):
 
         error_history = []
 
-        start = time.perf_counter()
+        start = time.process_time()
 
         for _ in range(2):
 
@@ -135,7 +135,7 @@ class GaussSeidelN2Solver(IterativeSolver):
             error=self.residual(x_old, x),
             converged=False,
             execution_time=(
-                time.perf_counter() - start
+                time.process_time() - start
             ),
             error_history=error_history,
         )

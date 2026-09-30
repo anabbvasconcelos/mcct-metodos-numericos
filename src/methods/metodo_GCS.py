@@ -28,7 +28,7 @@ class GradientConjugadoQuadradoeSolver(IterativeSolver):
         rho_prev = np.dot(r_tilde.T, r)
 
         error_history = []
-        start = time.perf_counter()
+        start = time.process_time()
         for k in range(max_iteractions):
             # Evitar divisão por zero se rho_prev for quase nulo (reinicia o vetor sombra)
             if abs(rho_prev) < 1e-14:
@@ -41,7 +41,7 @@ class GradientConjugadoQuadradoeSolver(IterativeSolver):
                         iterations=k + 1,
                         error=self.residual(system, x),
                         converged=False,
-                        execution_time=time.perf_counter() - start,
+                        execution_time=time.process_time() - start,
                         error_history=error_history
                     )
                     # return x, k + 1, False
@@ -60,7 +60,7 @@ class GradientConjugadoQuadradoeSolver(IterativeSolver):
                         iterations=k + 1,
                         error=self.residual(system, x),
                         converged=False,
-                        execution_time=time.perf_counter() - start,
+                        execution_time=time.process_time() - start,
                         error_history=error_history
                     )
 
@@ -82,7 +82,7 @@ class GradientConjugadoQuadradoeSolver(IterativeSolver):
                         iterations=k + 1,
                         error=error,
                         converged=True,
-                        execution_time=time.perf_counter() - start,
+                        execution_time=time.process_time() - start,
                         error_history=error_history
                     )
 
@@ -103,7 +103,7 @@ class GradientConjugadoQuadradoeSolver(IterativeSolver):
             solution=x,
             iterations=max_iteractions,
             converged=False,
-            execution_time=time.perf_counter() - start,
+            execution_time=time.process_time() - start,
             error_history=error_history
         )
 

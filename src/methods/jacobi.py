@@ -20,7 +20,7 @@ class JacobiSolver(IterativeSolver):
         R = A - np.diag(D)
 
         error_history = []
-        start = time.perf_counter()
+        start = time.process_time()
 
         for iteration in range(1, self.config.max_iterations + 1):
 
@@ -36,7 +36,7 @@ class JacobiSolver(IterativeSolver):
                     iterations=iteration,
                     error=error,
                     converged=True,
-                    execution_time=time.perf_counter() - start,
+                    execution_time=time.process_time() - start,
                     error_history=error_history
                 )
 

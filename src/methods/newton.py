@@ -13,7 +13,7 @@ class NewtonSolver(IterativeSolver):
         return "Newton"
 
     def solve(self, system: Inputs, x0: np.ndarray | None = None) -> IterativeResult:
-        start = time.perf_counter()
+        start = time.process_time()
         
         X = self.config.initial_guess
         error_history = [] 
@@ -46,7 +46,7 @@ class NewtonSolver(IterativeSolver):
                     iterations=iterations,
                     error=final_error,
                     converged=True,
-                    execution_time=time.perf_counter() - start,
+                    execution_time=time.process_time() - start,
                     error_history=error_history
                 )
 
@@ -56,6 +56,6 @@ class NewtonSolver(IterativeSolver):
             iterations=iterations,
             error=final_error,
             converged=False,
-            execution_time=time.perf_counter() - start,
+            execution_time=time.process_time() - start,
             error_history=error_history
         )

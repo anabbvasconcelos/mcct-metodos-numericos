@@ -44,6 +44,11 @@ def parse_args():
         type=int,
         required=True
     )
+    parser.add_argument(
+        "--num_runs",
+        type=int,
+        required=True
+    )
 
     parser.add_argument(
         "--init_guess",
@@ -63,8 +68,6 @@ def main():
 
     args = parse_args()
     is_linear = args.is_linear.lower() in ("true", "1", "yes", "t")
-    print("is_linear",is_linear)
-    print("is_linear",args.is_linear.lower())
     init_guess = np.array(
         [
             float(x)
@@ -123,9 +126,6 @@ def main():
         save_conditioning(conditioning)
         resultados_iteracao = calculate_iteration_matrices_conditioning(system.A)
         for metodo, metricas in resultados_iteracao.items():
-            print("=" * 60)
-            print(f"Método: {metodo}")
-            print("=" * 60)
             save_conditioning(metricas,f"results/condicionamento_{metodo}.csv")
             
 
@@ -221,45 +221,43 @@ def main():
     # ==========================================================
     # EXECUÇÃO
     # ==========================================================
+    times = args.num_runs
 
-    for solver, result_file in zip(
-        solvers,
-        result_files
-    ):
+    for solver, result_file in zip(solvers, result_files):
 
-        result = solver.solve(system)
+        cpu_times = []
+        result = None
+
+        for _ in range(times):
+            result = solver.solve(system)
+
+            cpu_times.append(result.execution_time)
+
+        mean_cpu_time = np.mean(cpu_times)
 
         print("=" * 60)
         print(result.method)
 
+        print(f"Convergiu: {result.converged}")
+        print(f"Iterações: {result.iterations}")
+        print(f"Erro: {result.error:.6e}")
+
         print(
-            f"Convergiu: "
-            f"{result.converged}"
+            f"Tempo médio de CPU ({times} execuções): "
+            f"{mean_cpu_time:.12f} s"
         )
 
         print(
-            f"Iterações: "
-            f"{result.iterations}"
+            f"Tempo médio de CPU ({times} execuções): "
+            f"{mean_cpu_time * 1_000_000:.6f} µs"
         )
 
-        print(
-            f"Erro: "
-            f"{result.error:.6e}"
-        )
-
-        print(
-            f"Tempo: "
-            f"{result.execution_time:.6f} s"
-        )
-
-        print(
-            f"Solução:\n"
-            f"{result.solution}"
-        )
+        print(f"Solução:\n{result.solution}")
 
         save_error_history(
             result.error_history,
             result_file
         )
+
 if __name__ == "__main__":
     main()
