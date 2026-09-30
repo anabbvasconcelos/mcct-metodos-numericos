@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 
 from analysis.convergence import save_error_history
+from src.methods.newton import NewtonSolver
 from src.methods.newton_modificado import NewtonModificadoSolver
 from src.reader.non_lin_inputs import SystemNonLinInputs
 from src.methods.jacobi_n2 import JacobiN2Solver
@@ -209,8 +210,9 @@ def main():
     else:
         print("=== Executando Modo Não Linear ===")
         system = SystemNonLinInputs()
-        solvers = [NewtonModificadoSolver(config)]
+        solvers = [NewtonSolver(config), NewtonModificadoSolver(config)]
         result_files = [
+            "results/newtom_error.csv",
             "results/newtom_mod_error.csv"
         ]
         # result = solver.solve(system)
